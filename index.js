@@ -1,28 +1,23 @@
-/*!
- * rollup-plugin-prepack <https://github.com/tunnckoCore/rollup-plugin-prepack>
- *
- * Copyright (c) Charlike Mike Reagent <@tunnckoCore> (https://i.am.charlike.online)
- * Released under the MIT license.
- */
-
-'use strict'
-
 const prepack = require('prepack')
-const utils = require('rollup-pluginutils')
 
-module.exports = function rollupPluginPrepack (options) {
-  options = Object.assign({ include: '**/*.js' }, options)
-
-  const filter = utils.createFilter(options.include, options.exclude)
-  const handle = (str) => `export default ${JSON.stringify(str.trim())}`
-
+function prepackPlugin (filePath, options) {
   return {
     name: 'prepack',
-    transform: (source, id) => {
-      if (!filter(id)) return null
+    transformBundle (fileContents) {
+      try {
+        const { code } = prepack.prepackSources([
+          {
+            fileContents,
+            filePath
+          }
+        ], options)
 
-      let { code, map } = prepack.prepack(source, options)
-      return { code: handle(code), map }
+        return code
+      } catch (err) {
+        throw err
+      }
     }
   }
 }
+
+module.exports = prepackPlugin
